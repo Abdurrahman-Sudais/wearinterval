@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Graphite / navy surfaces */
+  --color-ink-950: #090d12;
+  --color-ink-900: #0d131a;
+  --color-ink-850: #111922;
+  --color-ink-800: #16202b;
+  --color-ink-750: #1b2633;
+  --color-ink-700: #24313f;
+  --color-ink-600: #334253;
+  --color-ink-500: #4c5c70;
+  --color-ink-400: #7a899c;
+  --color-ink-300: #a7b2c0;
+  --color-ink-200: #cdd4dd;
+  --color-ink-100: #e5e9ee;
+  --color-ink-50: #f3f5f7;
+  --color-navy-900: #0b1626;
+  --color-navy-800: #102035;
+
+  /* Restrained industrial cyan */
+  --color-steel-300: #9fd3e8;
+  --color-steel-400: #6cbfdf;
+  --color-steel-500: #4fb3d9;
+  --color-steel-600: #2f8fb6;
+  --color-steel-700: #226f8f;
+
+  /* Status (reserved; always paired with icon + label) */
+  --color-ok: #4fae84;
+  --color-warn: #e0a640;
+  --color-crit: #e06a5a;
+  --color-stale: #a28ee6;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-ink-950 text-ink-100 font-sans;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-steel-500) 35%, transparent);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-steel-400);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .tech-grid {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .tech-grid-fine {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px),
+      linear-gradient(to right, rgb(255 255 255 / 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.02) 1px, transparent 1px);
+    background-size: 96px 96px, 96px 96px, 16px 16px, 16px 16px;
+  }
+  .tech-grid-light {
+    background-image:
+      linear-gradient(to right, rgb(13 19 26 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(13 19 26 / 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-steel-500 text-ink-950 hover:bg-steel-400;
+  }
+  .btn-secondary {
+    @apply border border-ink-600 text-ink-100 hover:border-ink-400 hover:bg-ink-800;
+  }
+  .btn-ghost {
+    @apply text-ink-200 hover:bg-ink-800 hover:text-white;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  .panel {
+    @apply rounded-lg border border-ink-700 bg-ink-850;
+  }
+  .label {
+    @apply font-mono text-[11px] uppercase tracking-[0.12em] text-ink-400;
+  }
+  .field {
+    @apply w-full rounded-md border border-ink-600 bg-ink-900 px-3 py-2 text-sm text-ink-100 placeholder:text-ink-500 focus:border-steel-500 focus:outline-none;
+  }
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.16em] text-steel-400;
+  }
+}
