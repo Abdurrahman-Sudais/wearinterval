@@ -26,7 +26,7 @@ export default function Reports() {
   return (
     <>
       <PageHeader title="Reports" description="Summaries of tool status, alerts, inspection outcomes and data quality. Exports are generated in the browser from the demo data." actions={<SimulatedTag />} />
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <Card
           title="Tool status by cell"
           actions={

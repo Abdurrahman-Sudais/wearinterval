@@ -104,3 +104,133 @@
     @apply font-mono text-xs uppercase tracking-[0.16em] text-steel-400;
   }
 }
+
+/* ───────────── Motion ─────────────
+   Everything below is decorative. With prefers-reduced-motion, content is shown immediately and nothing moves. */
+
+@keyframes wi-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes wi-pulse-ring {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes wi-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes wi-draw {
+  from { stroke-dashoffset: var(--len, 1200); }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes wi-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@keyframes wi-scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+@keyframes wi-glow {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.06); }
+}
+@keyframes wi-word-in {
+  from { opacity: 0; transform: translateY(0.4em); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes wi-spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@layer components {
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--d, 0ms);
+  }
+  .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+  .float { animation: wi-float 6s ease-in-out infinite; }
+  .float-slow { animation: wi-float 8s ease-in-out infinite; animation-delay: -3s; }
+  .live-dot {
+    @apply relative inline-flex h-2 w-2 rounded-full bg-ok;
+  }
+  .live-dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: inherit;
+    animation: wi-pulse-ring 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  .marquee-track { animation: wi-marquee 40s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  .draw path.trace {
+    stroke-dasharray: var(--len, 1200);
+    stroke-dashoffset: var(--len, 1200);
+  }
+  .draw.in path.trace { animation: wi-draw 2.2s cubic-bezier(0.65, 0, 0.35, 1) forwards; animation-delay: var(--d, 0ms); }
+  .text-shimmer {
+    background: linear-gradient(90deg, var(--color-steel-400), #e5f6fd 45%, var(--color-steel-400) 60%) 0 0 / 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: wi-shimmer 6s linear infinite;
+  }
+  .scan::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 25%;
+    background: linear-gradient(90deg, transparent, rgb(108 191 223 / 0.08), transparent);
+    animation: wi-scan 5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .hero-glow { animation: wi-glow 9s ease-in-out infinite; }
+  .word-in { display: inline-block; animation: wi-word-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .spin-slow { animation: wi-spin-slow 24s linear infinite; }
+
+  /* Cards that lift and catch a spotlight that follows the pointer (--mx/--my set by SiteLayout). */
+  .lift {
+    position: relative;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s, box-shadow 0.35s;
+  }
+  .lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px -20px rgb(0 0 0 / 0.55);
+  }
+  .spot {
+    position: relative;
+    isolation: isolate;
+  }
+  .spot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s;
+    background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgb(79 179 217 / 0.12), transparent 45%);
+  }
+  .spot:hover::before { opacity: 1; }
+  .spot:hover { border-color: rgb(79 179 217 / 0.45); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .float, .float-slow, .marquee-track, .text-shimmer, .scan::after, .hero-glow, .word-in, .spin-slow, .live-dot::after { animation: none !important; }
+  .draw path.trace { stroke-dasharray: none; stroke-dashoffset: 0; }
+  .draw.in path.trace { animation: none; }
+  .lift:hover { transform: none; }
+}
+
+section[id] {
+  scroll-margin-top: 4rem;
+}

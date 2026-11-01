@@ -5,7 +5,8 @@
 Marketing website and interactive demo dashboard for Wearinterval, a cutting-tool condition-monitoring platform for CNC machining teams. Wearinterval helps teams compare cutting-tool observations against appropriate baselines, investigate unusual changes in supplied telemetry, and prioritise inspections.
 
 - Domain: wearinterval.space
-- Founder: Seyi Bakare · seyi@wearinterval.space
+- Founder & CEO: Seyi Bakare · seyi@wearinterval.space
+- Co-founder & CTO: Yusuf Abdulhamid
 
 > All dashboard data is **simulated**. No sensors, telemetry APIs or AI services are connected. The AWS architecture on `/technology` is a proposal, not a deployment.
 
@@ -22,19 +23,48 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # type-check + production build into dist/
 npm run preview    # serve the production build
-npm test           # unit tests (Vitest): roles, assistant grounding/refusals, lead form
+npm test           # unit tests (Vitest): roles, assistant grounding/refusals, lead form, home content
 ```
 
 Copy `.env.example` to `.env.local` to connect the early-access form to HubSpot (optional, see below).
 
-The app is a single-page application. When deploying, configure the host to serve `index.html` for unknown paths (SPA fallback) so deep links such as `/monitoring/tools/T-1204` work.
+## Deploying
+
+`npm run build` produces a static site in `dist/`. It is a single-page application, so the host must serve `index.html` for unknown paths (deep links such as `/monitoring/tools/T-1204`). Ready-made configs are included:
+
+| Host | Config | What it sets |
+|---|---|---|
+| Netlify / Cloudflare Pages | `public/_redirects`, `public/_headers` | SPA fallback, security headers, long-lived caching for hashed assets |
+| Vercel | `vercel.json` | The same rewrites and headers |
+
+Before going live:
+
+1. Point `wearinterval.space` at the host and enable HTTPS (HSTS is set by the configs).
+2. Optional: set the `VITE_HUBSPOT_*` variables (see `.env.example`) so early-access requests reach a CRM instead of only the visitor's browser and email.
+3. Review the copy marked for confirmation below.
+
+### Content to confirm before launch
+
+- **Founders:** Seyi Bakare (Founder & CEO) and Yusuf Abdulhamid (Co-founder & CTO). Their bios live in `FOUNDERS` (`src/pages/HomeSections.tsx`). Add photos or LinkedIn links there if wanted.
+- **Industry statistics** on the home page (`PROBLEM_STATS` in `src/pages/Home.tsx`) cite Siemens (2024), Ghosh et al. (MATEC 2018) and a TU Wien study. Check each figure against its linked source.
+- **Roadmap, pricing and FAQ** describe plans, not commitments; keep them in step with what you offer.
+- **Privacy notice and terms** (`src/pages/Legal.tsx`) are review drafts that need the operator's legal details.
+
+## Design and motion
+
+- Sections fade and rise into view as they scroll in (`src/lib/motion.ts`: one shared IntersectionObserver plus a scroll fallback so nothing stays hidden).
+- The hero rotates its outcome word, draws a vibration trace, and floats evidence cards over the live dashboard preview. The "Built for" strip scrolls as a marquee, the problem statistics count up, and illustrations draw themselves.
+- Cards lift on hover and pick up a spotlight that follows the pointer.
+- With `prefers-reduced-motion`, everything is shown immediately and nothing moves.
+- Every route except the home page is lazy-loaded, so the demo dashboard code only loads when someone opens it.
 
 ## Routes
 
 | Path | Page |
 |---|---|
-| `/` | Home: hero, live dashboard preview, sections A–F, then AI (G), safeguards (H), AWS technology (I), pricing (J), team (K), FAQ (L, `#faq`) and early-access form (M, `#early-access`) |
-| `/product`, `/tool-monitoring`, `/analytics`, `/how-it-works`, `/pricing`, `/about` | Marketing pages |
+| `/` | Home: hero with live dashboard preview, “Built for” marquee, the problem with sourced statistics (`#problem`), what we solve (`#solution`), six platform modules (`#platform`), context, workflow, how it works (`#how`), who it’s for (`#who`), comparison (`#compare`), AI, safeguards, AWS technology, pricing (`#pricing`), roadmap (`#roadmap`), team (`#team`), FAQ (`#faq`) and early-access form (`#early-access`) |
+| `/about` | Founding team, story, mission, principles and roadmap |
+| `/product`, `/tool-monitoring`, `/analytics`, `/how-it-works`, `/pricing` | Marketing pages |
 | `/contact` | Early-access form (`?plan=Workshop` preselects a plan) |
 | `/technology` | Proposed AWS architecture: pipeline, services, design rules |
 | `/security` | Review safeguards enforced in the demo, and the proposed security design |

@@ -25,8 +25,9 @@ export default function Contact() {
               </a>
             </div>
             <div>
-              <h3 className="label">Founder</h3>
-              <p className="mt-2 text-ink-200">Seyi Bakare</p>
+              <h3 className="label">Founders</h3>
+              <p className="mt-2 text-ink-200">Seyi Bakare · Founder & CEO</p>
+              <p className="mt-1 text-ink-200">Yusuf Abdulhamid · Co-founder & CTO</p>
             </div>
             <div>
               <h3 className="label">Web</h3>

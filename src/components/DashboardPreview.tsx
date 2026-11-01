@@ -63,7 +63,7 @@ export function DashboardPreview() {
             <ChartLegend />
           </div>
         </div>
-        <div className="space-y-px bg-ink-700">
+        <div className="flex flex-col gap-px bg-ink-700 [&>*:last-child]:flex-1">
           <div className="bg-ink-900 p-4">
             <div className="label mb-2">Inspection alerts</div>
             <ul className="space-y-2">
