@@ -5,8 +5,8 @@
 Marketing website and interactive demo dashboard for Wearinterval, a cutting-tool condition-monitoring platform for CNC machining teams. Wearinterval helps teams compare cutting-tool observations against appropriate baselines, investigate unusual changes in supplied telemetry, and prioritise inspections.
 
 - Domain: wearinterval.space
-- Founder & CEO: Seyi Bakare · seyi@wearinterval.space
-- Co-founder & CTO: Yusuf Abdulhamid
+- Founder/CEO: Seyi Bakare · seyi@wearinterval.space
+- Co-founder/CTO: Yusuf Abdulhamid
 
 > All dashboard data is **simulated**. No sensors, telemetry APIs or AI services are connected. The AWS architecture on `/technology` is a proposal, not a deployment.
 
@@ -45,7 +45,7 @@ Before going live:
 
 ### Content to confirm before launch
 
-- **Founders:** Seyi Bakare (Founder & CEO) and Yusuf Abdulhamid (Co-founder & CTO). Their bios live in `FOUNDERS` (`src/pages/HomeSections.tsx`). Add photos or LinkedIn links there if wanted.
+- **Founders:** Seyi Bakare (Founder/CEO) and Yusuf Abdulhamid (Co-founder/CTO). Their bios live in `FOUNDERS` (`src/pages/HomeSections.tsx`). Add photos or LinkedIn links there if wanted.
 - **Industry statistics** on the home page (`PROBLEM_STATS` in `src/pages/Home.tsx`) cite Siemens (2024), Ghosh et al. (MATEC 2018) and a TU Wien study. Check each figure against its linked source.
 - **Roadmap, pricing and FAQ** describe plans, not commitments; keep them in step with what you offer.
 - **Privacy notice and terms** (`src/pages/Legal.tsx`) are review drafts that need the operator's legal details.

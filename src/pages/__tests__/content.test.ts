@@ -11,7 +11,7 @@ describe('home content', () => {
   })
 
   it('credits both founders with their roles', () => {
-    expect(FOUNDERS.map((f) => `${f.name} · ${f.role}`)).toEqual(['Seyi Bakare · Founder & CEO', 'Yusuf Abdulhamid · Co-founder & CTO'])
+    expect(FOUNDERS.map((f) => `${f.name} · ${f.role}`)).toEqual(['Seyi Bakare · Founder/CEO', 'Yusuf Abdulhamid · Co-founder/CTO'])
   })
 
   it('answers the failure-prediction question with a clear no', () => {

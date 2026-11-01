@@ -17,20 +17,23 @@ export interface Person {
   role: string
   email?: string
   bio: string
+  focus: string[]
 }
 
 export const FOUNDERS: Person[] = [
   {
     name: 'Seyi Bakare',
     initials: 'SB',
-    role: 'Founder & CEO',
+    role: 'Founder/CEO',
     email: 'seyi@wearinterval.space',
+    focus: ['Product', 'Customers', 'Pilots'],
     bio: 'Seyi founded Wearinterval to give machining teams evidence, not guesswork, about when a cutting tool needs attention — and leads product, customers and every pilot.',
   },
   {
     name: 'Yusuf Abdulhamid',
     initials: 'YA',
-    role: 'Co-founder & CTO',
+    role: 'Co-founder/CTO',
+    focus: ['Data ingestion', 'Analysis engine', 'Cloud platform'],
     bio: 'Yusuf co-founded Wearinterval and leads its technology — from machine-data ingestion and the baseline-comparison engine to the cloud platform it runs on.',
   },
 ]
@@ -216,6 +219,13 @@ export function PersonCard({ person, dark = false, delay = 0 }: { person: Person
           <p className={`label ${dark ? 'text-steel-400' : 'text-steel-700'}`}>{person.role}</p>
           <h3 className={`mt-1 text-2xl font-semibold ${dark ? 'text-white' : 'text-ink-950'}`}>{person.name}</h3>
           <p className={`mt-3 max-w-xl ${dark ? 'text-ink-300' : 'text-ink-600'}`}>{person.bio}</p>
+          <ul className="mt-4 flex flex-wrap gap-2" aria-label="Focus areas">
+            {person.focus.map((f) => (
+              <li key={f} className={`rounded-full border px-2.5 py-1 text-xs ${dark ? 'border-ink-600 bg-ink-900/60 text-ink-200' : 'border-ink-200 bg-ink-50 text-ink-700'}`}>
+                {f}
+              </li>
+            ))}
+          </ul>
           {person.email && (
             <a href={`mailto:${person.email}`} className={`mt-4 inline-flex items-center gap-1.5 text-sm ${dark ? 'text-steel-400 hover:text-steel-300' : 'text-steel-700 hover:text-steel-600'}`}>
               <Mail className="h-4 w-4" aria-hidden /> {person.email}
