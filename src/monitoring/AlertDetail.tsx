@@ -12,7 +12,7 @@ import { Card, InspectionForm, NotCurrentWarning, PageHeader } from './shared'
 
 export default function AlertDetail() {
   const { alertId = '' } = useParams()
-  const { alerts, alertState, assessmentById, settings, assign, addNote, setStatus, inspections } = useDemo()
+  const { alerts, alertState, assessmentById, settings, assign, addNote, setStatus, inspections, can, user } = useDemo()
   const alert = alerts.find((a) => a.id === alertId)
   const [note, setNote] = useState('')
 
@@ -106,12 +106,17 @@ export default function AlertDetail() {
 
         <div className="space-y-6">
           <Card title="Workflow">
+            {(!can('assign') || !can('resolve')) && (
+              <p className="mb-4 rounded-md border border-ink-700 bg-ink-850 p-3 text-xs text-ink-300" role="note">
+                Demoing as {user.name} ({user.title}). Steps your role cannot perform are disabled; switch “Demo as” in the header to try another role.
+              </p>
+            )}
             <ol className="space-y-4 text-sm">
               <li>
                 <div className="label mb-1.5 flex items-center gap-1.5">
                   <UserPlus className="h-3.5 w-3.5" aria-hidden /> 1 · Assign technician
                 </div>
-                <select aria-label="Assign technician" className="field" value={st.assigneeId ?? ''} onChange={(e) => e.target.value && assign(alert.id, e.target.value)} disabled={resolved}>
+                <select aria-label="Assign technician" className="field" value={st.assigneeId ?? ''} onChange={(e) => e.target.value && assign(alert.id, e.target.value)} disabled={resolved || !can('assign')}>
                   <option value="">Unassigned</option>
                   {TECHNICIANS.map((t) => (
                     <option key={t.id} value={t.id}>
@@ -137,8 +142,8 @@ export default function AlertDetail() {
                   <label htmlFor="alert-note" className="sr-only">
                     Note
                   </label>
-                  <input id="alert-note" className="field" placeholder="e.g. Checked coolant concentration: 7%" value={note} onChange={(e) => setNote(e.target.value)} />
-                  <button type="submit" className="btn-secondary btn-sm shrink-0" disabled={!note.trim()}>
+                  <input id="alert-note" className="field" placeholder="e.g. Checked coolant concentration: 7%" value={note} onChange={(e) => setNote(e.target.value)} disabled={!can('note')} />
+                  <button type="submit" className="btn-secondary btn-sm shrink-0" disabled={!note.trim() || !can('note')}>
                     Add
                   </button>
                 </form>
@@ -148,14 +153,14 @@ export default function AlertDetail() {
                   <Eye className="h-3.5 w-3.5" aria-hidden /> 3 · Review status
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button className="btn-secondary btn-sm" onClick={() => setStatus(alert.id, 'reviewed')} disabled={st.status === 'reviewed' || resolved}>
+                  <button className="btn-secondary btn-sm" onClick={() => setStatus(alert.id, 'reviewed')} disabled={st.status === 'reviewed' || resolved || !can('review')}>
                     Mark reviewed
                   </button>
-                  <button className="btn-primary btn-sm" onClick={() => setStatus(alert.id, 'resolved')} disabled={resolved}>
+                  <button className="btn-primary btn-sm" onClick={() => setStatus(alert.id, 'resolved')} disabled={resolved || !can('resolve')}>
                     <CheckCircle2 className="h-3.5 w-3.5" /> Mark resolved
                   </button>
                   {resolved && (
-                    <button className="btn-ghost btn-sm" onClick={() => setStatus(alert.id, 'reviewed')}>
+                    <button className="btn-ghost btn-sm" onClick={() => setStatus(alert.id, 'reviewed')} disabled={!can('review')}>
                       Reopen
                     </button>
                   )}

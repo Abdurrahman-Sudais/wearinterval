@@ -4,6 +4,7 @@ import { DashboardPreview } from '../components/DashboardPreview'
 import { CellDrawing, EndMillDrawing } from '../components/Illustrations'
 import { usePageMeta } from '../components/Seo'
 import { FinalCta, Section } from '../components/SiteLayout'
+import { AiSection, EarlyAccessSection, FaqSection, PricingSection, SecuritySection, TeamSection, TechnologySection } from './HomeSections'
 
 export const STEPS = [
   { icon: Factory, title: 'Register machines and cutting tools', body: 'Create records for each machine, cell and tool — type, grade, workpiece material and pocket.' },
@@ -37,8 +38,8 @@ export default function Home() {
               <Link to="/monitoring" className="btn-primary">
                 Explore the Monitoring Dashboard <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link to="/how-it-works" className="btn-secondary">
-                See How It Works
+              <Link to="/#early-access" className="btn-secondary">
+                Request early access
               </Link>
             </div>
           </div>
@@ -195,6 +196,13 @@ export default function Home() {
         </div>
       </Section>
 
+      <AiSection />
+      <SecuritySection />
+      <TechnologySection />
+      <PricingSection />
+      <TeamSection />
+      <FaqSection />
+      <EarlyAccessSection />
       <FinalCta />
     </>
   )

@@ -1,10 +1,11 @@
-import { Activity, ArrowLeft, ClipboardList, Cpu, FileText, FlaskConical, LayoutDashboard, LineChart, Radio, Search, Settings, Wrench } from 'lucide-react'
+import { Activity, ArrowLeft, ClipboardList, Cpu, FileText, FlaskConical, LayoutDashboard, LineChart, Radio, Search, Settings, ShieldCheck, UserCircle2, Wrench } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Logo } from '../components/Logo'
 import { usePageMeta } from '../components/Seo'
 import { FACILITY, MACHINES } from '../data/facility'
 import { fmtDateTime } from '../lib/analysis'
+import { DEMO_USERS } from '../lib/access'
 import { useDemo } from '../lib/store'
 
 const NAV = [
@@ -15,8 +16,26 @@ const NAV = [
   { to: '/monitoring/inspections', label: 'Inspection Queue', icon: ClipboardList, badge: true },
   { to: '/monitoring/telemetry', label: 'Telemetry', icon: Radio },
   { to: '/monitoring/reports', label: 'Reports', icon: FileText },
+  { to: '/monitoring/audit', label: 'Audit & roles', icon: ShieldCheck },
   { to: '/monitoring/settings', label: 'Settings', icon: Settings },
 ]
+
+function DemoAs() {
+  const { user, setUser } = useDemo()
+  return (
+    <label className="flex items-center gap-2 text-xs text-ink-300">
+      <UserCircle2 className="h-4 w-4 text-steel-400" aria-hidden />
+      <span className="whitespace-nowrap">Demo as</span>
+      <select aria-label="Demo as user" className="field h-9 py-1 text-xs" value={user.id} onChange={(e) => setUser(e.target.value)}>
+        {DEMO_USERS.map((u) => (
+          <option key={u.id} value={u.id}>
+            {u.name} · {u.title}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
 
 function GlobalSearch() {
   const { assessments } = useDemo()
@@ -123,6 +142,7 @@ export function MonitoringLayout() {
         </div>
         <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-ink-800 bg-ink-950/90 px-4 py-3 backdrop-blur sm:px-6">
           <GlobalSearch />
+          <DemoAs />
           <div className="ml-auto flex items-center gap-2 font-mono text-xs text-ink-400" title="The demo uses a fixed clock so the scenario is reproducible.">
             <Activity className="h-3.5 w-3.5 text-steel-400" aria-hidden />
             Demo clock {fmtDateTime(new Date(now).toISOString())} UTC

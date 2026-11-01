@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { usePageMeta } from '../components/Seo'
 import { FinalCta, PageHero, Section } from '../components/SiteLayout'
 
-const PLANS = [
+export const PLANS = [
   {
     name: 'Single Cell',
     price: '$99',

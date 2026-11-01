@@ -73,8 +73,8 @@ export const RESULT_OPTIONS: { value: InspectionResult; help: string }[] = [
 
 /** Record a human-confirmed inspection result, optionally linked to an alert. */
 export function InspectionForm({ toolId, alertId, defaultTechnicianId, onDone }: { toolId: string; alertId?: string; defaultTechnicianId?: string; onDone?: () => void }) {
-  const { recordInspection } = useDemo()
-  const [technicianId, setTechnicianId] = useState(defaultTechnicianId ?? '')
+  const { recordInspection, can, user } = useDemo()
+  const [technicianId, setTechnicianId] = useState(defaultTechnicianId ?? user.technicianId ?? '')
   const [result, setResult] = useState<InspectionResult | ''>('')
   const [notes, setNotes] = useState('')
   const [wear, setWear] = useState('')
@@ -93,6 +93,10 @@ export function InspectionForm({ toolId, alertId, defaultTechnicianId, onDone }:
       return
     }
     const ins = recordInspection({ toolId, alertId, technicianId, result, notes: notes.trim(), flankWearMm: wearNum })
+    if (!ins) {
+      setError('Your demo role cannot record inspections. Switch “Demo as” to a technician, engineer or manager.')
+      return
+    }
     setSaved(`${ins.id} saved: ${INSPECTION_RESULT_LABEL[result]}`)
     setError(null)
     setResult('')
@@ -157,7 +161,12 @@ export function InspectionForm({ toolId, alertId, defaultTechnicianId, onDone }:
           <CheckCircle2 className="h-4 w-4" aria-hidden /> {saved}. Added to the tool’s inspection history.
         </p>
       )}
-      <button type="submit" className="btn-primary">
+      {!can('inspect') && (
+        <p className="text-xs text-ink-400" role="note">
+          {user.name} ({user.title}) has read-only access. Switch “Demo as” to record a result.
+        </p>
+      )}
+      <button type="submit" className="btn-primary" disabled={!can('inspect')}>
         Record inspection result
       </button>
     </form>

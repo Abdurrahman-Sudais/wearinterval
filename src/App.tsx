@@ -2,6 +2,7 @@ import { Route, Routes, useParams } from 'react-router-dom'
 import { SiteLayout } from './components/SiteLayout'
 import { MonitoringLayout } from './monitoring/MonitoringLayout'
 import AlertDetail from './monitoring/AlertDetail'
+import Audit from './monitoring/Audit'
 import InspectionQueue from './monitoring/InspectionQueue'
 import Machines from './monitoring/Machines'
 import Overview from './monitoring/Overview'
@@ -16,9 +17,12 @@ import Analytics from './pages/Analytics'
 import Contact from './pages/Contact'
 import Home from './pages/Home'
 import HowItWorks from './pages/HowItWorks'
+import Legal from './pages/Legal'
 import NotFound from './pages/NotFound'
 import Pricing from './pages/Pricing'
 import Product from './pages/Product'
+import Security from './pages/Security'
+import Technology from './pages/Technology'
 import ToolMonitoring from './pages/ToolMonitoring'
 
 // Remount detail views when the id changes so local filter state resets.
@@ -43,6 +47,10 @@ export default function App() {
         <Route path="pricing" element={<Pricing />} />
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
+        <Route path="technology" element={<Technology />} />
+        <Route path="security" element={<Security />} />
+        <Route path="privacy" element={<Legal kind="privacy" />} />
+        <Route path="terms" element={<Legal kind="terms" />} />
         <Route path="*" element={<NotFound />} />
       </Route>
       <Route path="monitoring" element={<MonitoringLayout />}>
@@ -55,6 +63,7 @@ export default function App() {
         <Route path="inspections/:alertId" element={<KeyedAlertDetail />} />
         <Route path="telemetry" element={<Telemetry />} />
         <Route path="reports" element={<Reports />} />
+        <Route path="audit" element={<Audit />} />
         <Route path="settings" element={<Settings />} />
       </Route>
     </Routes>

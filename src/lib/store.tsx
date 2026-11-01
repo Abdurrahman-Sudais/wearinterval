@@ -12,6 +12,7 @@ import {
   type TelemetryQuality,
   type ToolAssessment,
 } from './analysis'
+import { DEMO_USERS, SEED_AUDIT, can as roleCan, type Action, type AuditEntry, type DemoUser } from './access'
 
 const STORAGE_KEY = 'wearinterval.demo.v1'
 
@@ -21,9 +22,13 @@ interface PersistedState {
   settings: AnalysisSettings
   /** Minutes advanced on the demo clock by user actions, so new records sort after the seeded data. */
   clockMinutes: number
+  /** Who the visitor is demoing as; every change is checked against this user's role. */
+  userId: string
+  /** Audit entries added in this browser (seed entries are prepended when read). */
+  audit: AuditEntry[]
 }
 
-const initialState = (): PersistedState => ({ alertStates: {}, userInspections: [], settings: DEFAULT_SETTINGS, clockMinutes: 0 })
+const initialState = (): PersistedState => ({ alertStates: {}, userInspections: [], settings: DEFAULT_SETTINGS, clockMinutes: 0, userId: DEMO_USERS[0].id, audit: [] })
 
 function load(): PersistedState {
   try {
@@ -54,12 +59,18 @@ interface DemoStore {
   alertState: (id: string) => AlertWorkflowState
   inspections: Inspection[]
   now: number
-  assign: (alertId: string, technicianId: string) => void
-  addNote: (alertId: string, text: string) => void
-  setStatus: (alertId: string, status: AlertStatus) => void
-  recordInspection: (input: RecordInspectionInput) => Inspection
-  updateSettings: (patch: Partial<AnalysisSettings>) => void
-  resetDemo: () => void
+  user: DemoUser
+  setUser: (userId: string) => void
+  /** Whether the current demo user may perform an action. */
+  can: (action: Action) => boolean
+  auditLog: AuditEntry[]
+  /** Each returns false (and changes nothing) when the current user lacks permission. */
+  assign: (alertId: string, technicianId: string) => boolean
+  addNote: (alertId: string, text: string) => boolean
+  setStatus: (alertId: string, status: AlertStatus) => boolean
+  recordInspection: (input: RecordInspectionInput) => Inspection | null
+  updateSettings: (patch: Partial<AnalysisSettings>) => boolean
+  resetDemo: () => boolean
 }
 
 const Ctx = createContext<DemoStore | null>(null)
@@ -93,8 +104,19 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
 
   const alertState = useCallback((id: string) => state.alertStates[id] ?? DEFAULT_ALERT_STATE, [state.alertStates])
 
-  /** Apply a change to one alert and advance the demo clock by a minute. */
-  const mutateAlert = useCallback((alertId: string, fn: (s: AlertWorkflowState, at: string) => AlertWorkflowState) => {
+  const user = DEMO_USERS.find((u) => u.id === state.userId) ?? DEMO_USERS[0]
+  const can = useCallback((action: Action) => roleCan(user.role, action), [user.role])
+  const auditLog = useMemo(() => [...SEED_AUDIT, ...state.audit], [state.audit])
+
+  /** Append an audit entry at the current demo time (call inside setState updaters). */
+  const withAudit = (prev: PersistedState, at: string, action: string, detail: string): AuditEntry[] => [
+    ...prev.audit,
+    { id: SEED_AUDIT.length + prev.audit.length + 1, at, userId: prev.userId, action, detail },
+  ]
+  const setUser = useCallback((userId: string) => setState((p) => ({ ...p, userId })), [])
+
+  /** Apply a change to one alert, advance the demo clock by a minute and write an audit entry. */
+  const mutateAlert = useCallback((alertId: string, action: string, detail: string, fn: (s: AlertWorkflowState, at: string) => AlertWorkflowState) => {
     setState((prev) => {
       const at = new Date(DEMO_NOW + (prev.clockMinutes + 1) * 60_000).toISOString()
       const current = prev.alertStates[alertId] ?? DEFAULT_ALERT_STATE
@@ -102,35 +124,50 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
         ...prev,
         clockMinutes: prev.clockMinutes + 1,
         alertStates: { ...prev.alertStates, [alertId]: { ...fn(current, at), updatedAt: at } },
+        audit: withAudit(prev, at, action, `${alertId} · ${detail}`),
       }
     })
   }, [])
 
   const assign = useCallback(
     (alertId: string, technicianId: string) => {
+      if (!can('assign')) return false
       const tech = TECHNICIANS.find((t) => t.id === technicianId)
-      mutateAlert(alertId, (s, at) => ({
+      mutateAlert(alertId, 'Alert assigned', tech?.name ?? technicianId, (s, at) => ({
         ...s,
         assigneeId: technicianId,
         status: s.status === 'open' ? 'assigned' : s.status,
-        activity: [...s.activity, { at, kind: 'assigned', text: `Assigned to ${tech?.name ?? technicianId}` }],
+        activity: [...s.activity, { at, kind: 'assigned', text: `Assigned to ${tech?.name ?? technicianId} by ${user.name}` }],
       }))
+      return true
     },
-    [mutateAlert],
+    [mutateAlert, can, user.name],
   )
 
   const addNote = useCallback(
-    (alertId: string, text: string) => mutateAlert(alertId, (s, at) => ({ ...s, activity: [...s.activity, { at, kind: 'note', text }] })),
-    [mutateAlert],
+    (alertId: string, text: string) => {
+      if (!can('note')) return false
+      mutateAlert(alertId, 'Note added', text.slice(0, 80), (s, at) => ({ ...s, activity: [...s.activity, { at, kind: 'note', text: `${user.name}: ${text}` }] }))
+      return true
+    },
+    [mutateAlert, can, user.name],
   )
 
   const setStatus = useCallback(
-    (alertId: string, status: AlertStatus) =>
-      mutateAlert(alertId, (s, at) => ({ ...s, status, activity: [...s.activity, { at, kind: 'status', text: `Marked as ${status}` }] })),
-    [mutateAlert],
+    (alertId: string, status: AlertStatus) => {
+      if (!can(status === 'resolved' ? 'resolve' : 'review')) return false
+      mutateAlert(alertId, status === 'resolved' ? 'Alert resolved' : `Alert marked ${status}`, `by ${user.name}`, (s, at) => ({
+        ...s,
+        status,
+        activity: [...s.activity, { at, kind: 'status', text: `Marked as ${status} by ${user.name}` }],
+      }))
+      return true
+    },
+    [mutateAlert, can, user.name],
   )
 
   const recordInspection = useCallback((input: RecordInspectionInput) => {
+    if (!can('inspect')) return null
     const clock = state.clockMinutes + 1
     const at = new Date(DEMO_NOW + clock * 60_000).toISOString()
     const inspection: Inspection = {
@@ -145,7 +182,12 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
       userRecorded: true,
     }
     setState((prev) => {
-      const next: PersistedState = { ...prev, clockMinutes: clock, userInspections: [...prev.userInspections, inspection] }
+      const next: PersistedState = {
+        ...prev,
+        clockMinutes: clock,
+        userInspections: [...prev.userInspections, inspection],
+        audit: withAudit(prev, at, 'Inspection recorded', `${input.toolId} · ${INSPECTION_RESULT_LABEL[input.result]} (${inspection.id})`),
+      }
       if (input.alertId) {
         const s = prev.alertStates[input.alertId] ?? DEFAULT_ALERT_STATE
         const tech = TECHNICIANS.find((t) => t.id === input.technicianId)
@@ -164,10 +206,31 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
       return next
     })
     return inspection
-  }, [state.clockMinutes, state.userInspections.length])
+  }, [state.clockMinutes, state.userInspections.length, can])
 
-  const updateSettings = useCallback((patch: Partial<AnalysisSettings>) => setState((p) => ({ ...p, settings: { ...p.settings, ...patch } })), [])
-  const resetDemo = useCallback(() => setState(initialState()), [])
+  const updateSettings = useCallback(
+    (patch: Partial<AnalysisSettings>) => {
+      if (!can('settings')) return false
+      setState((p) => {
+        const at = new Date(DEMO_NOW + p.clockMinutes * 60_000).toISOString()
+        const detail = Object.entries(patch).map(([k, v]) => `${k} = ${v}`).join(', ')
+        // Dragging a slider fires many changes: keep one entry per rule and user, updated in place.
+        const last = p.audit[p.audit.length - 1]
+        const key = detail.split(' = ')[0]
+        if (last && last.action === 'Analysis rules changed' && last.userId === p.userId && last.detail.split(' = ')[0] === key && !detail.includes(',')) {
+          return { ...p, settings: { ...p.settings, ...patch }, audit: [...p.audit.slice(0, -1), { ...last, detail }] }
+        }
+        return { ...p, settings: { ...p.settings, ...patch }, audit: withAudit(p, at, 'Analysis rules changed', detail) }
+      })
+      return true
+    },
+    [can],
+  )
+  // Reset is demo housekeeping, available to every role; it keeps the current demo user.
+  const resetDemo = useCallback(() => {
+    setState((p) => ({ ...initialState(), userId: p.userId }))
+    return true
+  }, [])
 
   const value: DemoStore = {
     settings: state.settings,
@@ -178,6 +241,10 @@ export function DemoStoreProvider({ children }: { children: ReactNode }) {
     alertState,
     inspections,
     now: DEMO_NOW + state.clockMinutes * 60_000,
+    user,
+    setUser,
+    can,
+    auditLog,
     assign,
     addNote,
     setStatus,

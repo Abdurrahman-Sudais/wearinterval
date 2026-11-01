@@ -7,7 +7,7 @@ Marketing website and interactive demo dashboard for Wearinterval, a cutting-too
 - Domain: wearinterval.space
 - Founder: Seyi Bakare · seyi@wearinterval.space
 
-> All dashboard data is **simulated**. No sensors, telemetry APIs or AI services are connected.
+> All dashboard data is **simulated**. No sensors, telemetry APIs or AI services are connected. The AWS architecture on `/technology` is a proposal, not a deployment.
 
 ## Stack
 
@@ -22,7 +22,10 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # type-check + production build into dist/
 npm run preview    # serve the production build
+npm test           # unit tests (Vitest): roles, assistant grounding/refusals, lead form
 ```
+
+Copy `.env.example` to `.env.local` to connect the early-access form to HubSpot (optional, see below).
 
 The app is a single-page application. When deploying, configure the host to serve `index.html` for unknown paths (SPA fallback) so deep links such as `/monitoring/tools/T-1204` work.
 
@@ -30,8 +33,12 @@ The app is a single-page application. When deploying, configure the host to serv
 
 | Path | Page |
 |---|---|
-| `/` | Home: hero, live dashboard preview, sections A–G |
-| `/product`, `/tool-monitoring`, `/analytics`, `/how-it-works`, `/pricing`, `/about`, `/contact` | Marketing pages |
+| `/` | Home: hero, live dashboard preview, sections A–F, then AI (G), safeguards (H), AWS technology (I), pricing (J), team (K), FAQ (L, `#faq`) and early-access form (M, `#early-access`) |
+| `/product`, `/tool-monitoring`, `/analytics`, `/how-it-works`, `/pricing`, `/about` | Marketing pages |
+| `/contact` | Early-access form (`?plan=Workshop` preselects a plan) |
+| `/technology` | Proposed AWS architecture: pipeline, services, design rules |
+| `/security` | Review safeguards enforced in the demo, and the proposed security design |
+| `/privacy`, `/terms` | Privacy notice and terms of use (review drafts) |
 | `/monitoring` | Dashboard overview |
 | `/monitoring/machines` | Machines with status, last telemetry and associated tools |
 | `/monitoring/tools`, `/monitoring/tools/:toolId` | Tool list (search and filters in the URL) and tool detail |
@@ -39,7 +46,8 @@ The app is a single-page application. When deploying, configure the host to serv
 | `/monitoring/inspections`, `/monitoring/inspections/:alertId` | Inspection queue and alert workflow |
 | `/monitoring/telemetry` | Telemetry quality: freshness, completeness, missing intervals |
 | `/monitoring/reports` | Summaries with CSV export |
-| `/monitoring/settings` | Analysis rules and demo reset |
+| `/monitoring/audit` | Roles × permissions matrix, demo people, audit log (managers only) with CSV export |
+| `/monitoring/settings` | Analysis rules (managers only) and demo reset (anyone) |
 
 ## Project structure
 
@@ -52,7 +60,12 @@ src/
   lib/           Calculations and state (no UI)
     analysis.ts    Baselines, condition comparability, telemetry quality,
                    tool assessment, alerts, template-based explanations
-    store.tsx      React context + localStorage persistence of workflow state
+    store.tsx      React context + localStorage persistence of workflow state,
+                   permission checks and audit entries on every change
+    access.ts      Demo users, roles, permission matrix, seeded audit log
+    assistant.ts   Deterministic, record-grounded assistant (intent routing + refusals)
+    lead.ts        Early-access lead validation and HubSpot payload mapping
+    __tests__/     Vitest unit tests
   components/    Shared UI (layout, logo, charts, status badges, AI panel)
   pages/         Marketing pages
   monitoring/    Dashboard pages
@@ -83,18 +96,43 @@ These are transparent demonstration rules. A deviation is presented as a reason 
 
 Open an alert, review the supporting observations, assign a technician, add notes, record a result (no visible issue / wear observed / tool replaced / additional monitoring required / unable to determine), then mark the alert reviewed or resolved. Recorded results are added to the tool's history, appear as markers on its trend chart, and change its status. For example, "Tool replaced" sets the status to *New tool, baseline pending*. Workflow state is saved in `localStorage` (`wearinterval.demo.v1`). Use **Settings → Reset demo data** to clear it.
 
+### Roles and audit log
+
+Use **Demo as** in the dashboard header to switch between four fictional people:
+
+| Person | Role | Can |
+|---|---|---|
+| Grace Holm | Production manager | Everything, including analysis rules and reading the audit log |
+| Leah Park (default) | Reliability engineer | Assign, add notes, mark reviewed, resolve, record inspections |
+| Amara Reid | Tooling technician | Add notes and record inspections |
+| Tom Baker | Production planner | Read only |
+
+Every change is checked against the matrix in `src/lib/access.ts` (the store refuses it, and the controls are disabled with an explanation) and written to an append-only audit log. Repeated slider changes to one rule are merged into one entry. In production the same checks belong on the server (see `docs/architecture.md`).
+
+### Assistant
+
+The **Ask about this facility** panel on the overview answers questions such as "Which tools need attention?", "Which machines have data problems?", "What happened to T-1204?" and "Show recent inspections" from the current demo records, and lists the records it used. Questions about failure timing or remaining life are refused with an explanation. No language model is called; the production design uses Amazon Bedrock only to phrase answers from calculated results.
+
+### Early-access form
+
+`/contact` and the home page share `LeadForm` (name, work email, company, type of operation, machine count, use case, plan, message, consent, optional updates, honeypot).
+
+- **No configuration (default):** the enquiry is kept in `localStorage` (`wearinterval.enquiries`) and offered as a pre-filled email to seyi@wearinterval.space.
+- **HubSpot:** set `VITE_HUBSPOT_PORTAL_ID` and `VITE_HUBSPOT_FORM_GUID` (and optionally `VITE_HUBSPOT_MARKETING_SUBSCRIPTION_ID`) to submit to the HubSpot Forms API. Field names are listed in `docs/crm-plan.md`. Update `/privacy` before switching it on.
+
 ## What is simulated
 
 | Area | Status in this build |
 |---|---|
 | Telemetry, sensors, controller data | Simulated in the browser (`src/data/simulate.ts`). No hardware or gateways are connected |
-| "AI" evidence summary | Deterministic templates over the calculations (`explainAssessment`). It is not a trained or validated ML model, and no LLM or API is called |
-| Persistence | Browser `localStorage` only. There is no backend, authentication or multi-user sync |
-| Contact form | Saved in `localStorage`, with a pre-filled `mailto:` link. There is no form backend |
+| "AI" evidence summary and assistant | Deterministic templates over the calculations (`explainAssessment`, `assistant.ts`). It is not a trained or validated ML model, and no LLM or API is called |
+| Persistence, users and roles | Browser `localStorage` only. "Demo as" switches fictional users; there is no backend, real authentication or multi-user sync |
+| Early-access form | Saved in `localStorage` with a `mailto:` link, or sent to HubSpot when configured |
+| AWS infrastructure | Proposed only (`/technology`, `docs/architecture.md`) |
 | Reports | CSV is generated client-side |
 | Imagery | Engineering-style SVG drawings stand in for machining photography. Add real photos under `public/images/` |
 
-Integrations still to build for a production system: telemetry ingestion (OPC UA / MTConnect / historian), a backend API and database, authentication and roles, tool-management import, notifications, and a validated analytics pipeline.
+Integrations still to build for a production system: telemetry ingestion (OPC UA / MTConnect / historian), a backend API and database, server-side authentication and role enforcement, tool-management import, notifications, and a validated analytics pipeline.
 
 ## SEO
 

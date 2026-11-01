@@ -15,7 +15,7 @@ const FIELDS: { key: keyof AnalysisSettings; label: string; help: string; min: n
 ]
 
 export default function Settings() {
-  const { settings, updateSettings, resetDemo } = useDemo()
+  const { settings, updateSettings, resetDemo, can, user } = useDemo()
   const [confirm, setConfirm] = useState(false)
 
   return (
@@ -25,12 +25,17 @@ export default function Settings() {
         <Card
           title="Comparison rules"
           actions={
-            <button className="btn-ghost btn-sm" onClick={() => updateSettings(DEFAULT_SETTINGS)}>
+            <button className="btn-ghost btn-sm" onClick={() => updateSettings(DEFAULT_SETTINGS)} disabled={!can('settings')}>
               <RotateCcw className="h-3.5 w-3.5" /> Defaults
             </button>
           }
         >
           <div className="space-y-6">
+            {!can('settings') && (
+              <p className="rounded-md border border-ink-700 bg-ink-850 p-3 text-xs text-ink-300" role="note">
+                Only a production manager can change analysis rules. You are demoing as {user.name} ({user.title}).
+              </p>
+            )}
             {FIELDS.map((f) => (
               <div key={f.key}>
                 <div className="flex items-baseline justify-between gap-3">
@@ -49,6 +54,7 @@ export default function Settings() {
                   step={f.step}
                   value={settings[f.key]}
                   onChange={(e) => updateSettings({ [f.key]: Number(e.target.value) })}
+                  disabled={!can('settings')}
                   className="mt-2 w-full accent-[#4fb3d9]"
                   aria-describedby={`help-${f.key}`}
                 />
