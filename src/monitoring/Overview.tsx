@@ -6,6 +6,7 @@ import { CELLS, DAY, DEMO_NOW, MACHINES, TECHNICIANS } from '../data/facility'
 import { FEATURE_BY_KEY } from '../data/simulate'
 import { INSPECTION_RESULT_LABEL, fmtDateTime, fmtPct } from '../lib/analysis'
 import { useDemo } from '../lib/store'
+import { AssistantPanel } from '../components/AssistantPanel'
 import { Card, PageHeader, StatTile } from './shared'
 
 export default function Overview() {
@@ -27,6 +28,10 @@ export default function Overview() {
         <StatTile label="Review suggested" value={review} tone={review ? 'warn' : 'ok'} hint="Comparable observations differ from baseline" />
         <StatTile label="Open alerts" value={open.length} tone={open.length ? 'warn' : 'ok'} hint={`${alerts.length - open.length} resolved in this demo`} />
         <StatTile label="Assessments not current" value={notCurrent} tone={notCurrent ? 'stale' : 'ok'} hint={`${staleMachines} machine feed${staleMachines === 1 ? '' : 's'} delayed, outdated or incomplete`} />
+      </div>
+
+      <div className="mt-6">
+        <AssistantPanel />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">

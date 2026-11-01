@@ -5,12 +5,12 @@ import { Logo } from './Logo'
 
 export const NAV = [
   { to: '/product', label: 'Product' },
-  { to: '/tool-monitoring', label: 'Tool Monitoring' },
-  { to: '/analytics', label: 'Analytics' },
   { to: '/how-it-works', label: 'How It Works' },
+  { to: '/technology', label: 'Technology' },
+  { to: '/security', label: 'Security' },
   { to: '/pricing', label: 'Pricing' },
   { to: '/about', label: 'About' },
-  { to: '/contact', label: 'Contact' },
+  { to: '/contact', label: 'Early access' },
 ]
 
 function Header() {
@@ -73,9 +73,9 @@ function Footer() {
             seyi@wearinterval.space
           </a>
         </div>
-        <FooterCol title="Platform" links={[['/product', 'Product'], ['/tool-monitoring', 'Tool Monitoring'], ['/analytics', 'Analytics'], ['/monitoring', 'Demo dashboard']]} />
-        <FooterCol title="Company" links={[['/about', 'About'], ['/pricing', 'Pricing'], ['/contact', 'Contact']]} />
-        <FooterCol title="Learn" links={[['/how-it-works', 'How It Works'], ['/monitoring/telemetry', 'Telemetry quality'], ['/monitoring/inspections', 'Inspection workflow']]} />
+        <FooterCol title="Platform" links={[['/product', 'Product'], ['/tool-monitoring', 'Tool Monitoring'], ['/analytics', 'Analytics'], ['/technology', 'Technology'], ['/monitoring', 'Demo dashboard']]} />
+        <FooterCol title="Company" links={[['/about', 'About & team'], ['/pricing', 'Pricing'], ['/security', 'Security & safeguards'], ['/contact', 'Request early access']]} />
+        <FooterCol title="Learn" links={[['/how-it-works', 'How It Works'], ['/#faq', 'FAQ'], ['/monitoring/inspections', 'Inspection workflow'], ['/privacy', 'Privacy'], ['/terms', 'Terms']]} />
       </div>
       <div className="border-t border-ink-800">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-ink-500 sm:flex-row sm:justify-between sm:px-6 lg:px-8">
@@ -105,10 +105,12 @@ function FooterCol({ title, links }: { title: string; links: [string, string][] 
 }
 
 export function SiteLayout() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
+    // Section links such as /#faq scroll to their target once the page has rendered.
+    if (hash) window.setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView(), 0)
+    else window.scrollTo(0, 0)
+  }, [pathname, hash])
   return (
     <div className="flex min-h-screen flex-col">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-steel-500 focus:px-3 focus:py-2 focus:text-ink-950">
