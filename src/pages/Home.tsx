@@ -144,8 +144,8 @@ function Hero() {
             Catch tool-condition changes before they become{' '}
             <span className="sr-only">scrapped parts, rework, broken tools or unplanned downtime.</span>
             <span aria-hidden className="block min-h-[1.1em]">
-              <span key={word} className="word-in text-shimmer">
-                {word}.
+              <span key={word} className="word-in">
+                <span className="text-shimmer">{word}.</span>
               </span>
             </span>
           </h1>
